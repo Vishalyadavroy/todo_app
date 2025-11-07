@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>To-Do App</title>
+    <style>
+        /* ===== General Page Styles ===== */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f9fc;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        h1 {
+            margin-top: 20px;
+        }
+
+        /* ===== Container ===== */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+
+        /* ===== Form Styles ===== */
+        form {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
+
+        form input {
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        form button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        form button:hover {
+            background-color: #45a049;
+        }
+
+        /* ===== To-Do List Styles ===== */
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            background-color: #f1f1f1;
+            margin-bottom: 10px;
+            padding: 12px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap; /* Allows wrapping on smaller screens */
+        }
+
+        li b {
+            color: #333;
+            word-break: break-word; /* Break long titles */
+        }
+
+        /* ===== Buttons in List ===== */
+        li div {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px; /* space between buttons */
+            margin-top: 5px;
+        }
+
+        li button {
+            padding: 5px 10px;
+            font-size: 14px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        li button:hover {
+            opacity: 0.8;
+        }
+
+        .delete-btn {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .toggle-btn {
+            background-color: #2196F3;
+            color: white;
+        }
+
+        /* ===== Responsive Styles ===== */
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+
+            li {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            li div {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            form input, form button {
+                font-size: 14px;
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>To-Do App</h1>
+    <div class="container">
+        <h2>Create New To-Do</h2>
+        <form id="todoForm">
+            <input type="text" id="title" placeholder="Title" required>
+            <input type="text" id="description" placeholder="Description">
+            <button type="submit">Add</button>
+        </form>
+
+        <h2>All To-Dos</h2>
+        <ul id="todoList"></ul>
+    </div>
+
+    <script>
+        const apiUrl = '/api/todos/';
+
+        function loadTodos() {
+            fetch(apiUrl)
+                .then(res => res.json())
+                .then(data => {
+                    const list = document.getElementById('todoList');
+                    list.innerHTML = '';
+                    data.forEach(todo => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `
+                            <b>${todo.title}</b> - ${todo.description} - Completed: ${todo.completed}
+                            <div>
+                                <button class="toggle-btn" onclick="toggleComplete(${todo.id}, ${todo.completed})">
+                                    Toggle Complete
+                                </button>
+                                <button class="delete-btn" onclick="deleteTodo(${todo.id})">Delete</button>
+                            </div>
+                        `;
+                        list.appendChild(li);
+                    });
+                });
+        }
+
+        document.getElementById('todoForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            fetch(apiUrl + 'create/', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    title: document.getElementById('title').value,
+                    description: document.getElementById('description').value,
+                    completed: false
+                })
+            }).then(() => {
+                loadTodos();
+                this.reset();
+            });
+        });
+
+        function deleteTodo(id) {
+            fetch(apiUrl + id + '/delete/', {method: 'DELETE'})
+                .then(() => loadTodos());
+        }
+
+        function toggleComplete(id, completed) {
+            fetch(apiUrl + id + '/update/', {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({completed: !completed, title: '', description: ''})
+            }).then(() => loadTodos());
+        }
+
+        window.onload = loadTodos;
+    </script>
+</body>
+</html>
