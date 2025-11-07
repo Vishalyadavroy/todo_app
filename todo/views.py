@@ -38,7 +38,7 @@ def get_todo(request, pk):
     return Response(serializer.data)
 
 
-@api_view(['PUT', 'PATCH'])
+@api_view(['PUT' ,"PATCH"])
 def update_todo(request, pk):
     try:
         todo = Todo.objects.get(pk=pk)

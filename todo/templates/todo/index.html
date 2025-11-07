@@ -1,6 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>To-Do App</title>
     <style>
         /* ===== General Page Styles ===== */
@@ -22,7 +24,7 @@
 
         /* ===== Container ===== */
         .container {
-            max-width: 600px;
+            max-width: 700px;
             margin: 0 auto;
             padding: 20px;
             background-color: #fff;
@@ -74,20 +76,24 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap; /* Allows wrapping on smaller screens */
+            flex-wrap: wrap;
+            transition: background-color 0.3s;
+        }
+
+        li.completed {
+            background-color: #d4edda;
+            text-decoration: line-through;
         }
 
         li b {
             color: #333;
-            word-break: break-word; /* Break long titles */
+            word-break: break-word;
         }
 
         /* ===== Buttons in List ===== */
         li div {
             display: flex;
-            flex-wrap: wrap;
-            gap: 5px; /* space between buttons */
-            margin-top: 5px;
+            gap: 10px;
         }
 
         li button {
@@ -154,19 +160,22 @@
     <script>
         const apiUrl = '/api/todos/';
 
+        // Load existing todos from the API
         function loadTodos() {
             fetch(apiUrl)
                 .then(res => res.json())
                 .then(data => {
                     const list = document.getElementById('todoList');
-                    list.innerHTML = '';
+                    list.innerHTML = '';  // Clear the list before populating
+
                     data.forEach(todo => {
                         const li = document.createElement('li');
+                        li.classList.toggle('completed', todo.completed);  // Add 'completed' class if completed is true
                         li.innerHTML = `
                             <b>${todo.title}</b> - ${todo.description} - Completed: ${todo.completed}
                             <div>
                                 <button class="toggle-btn" onclick="toggleComplete(${todo.id}, ${todo.completed})">
-                                    Toggle Complete
+                                    ${todo.completed ? 'Undo Complete' : 'Toggle Complete'}
                                 </button>
                                 <button class="delete-btn" onclick="deleteTodo(${todo.id})">Delete</button>
                             </div>
@@ -176,32 +185,37 @@
                 });
         }
 
+        // Add new to-do
         document.getElementById('todoForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            const newTodo = {
+                title: document.getElementById('title').value,
+                description: document.getElementById('description').value,
+                completed: false
+            };
+
             fetch(apiUrl + 'create/', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    title: document.getElementById('title').value,
-                    description: document.getElementById('description').value,
-                    completed: false
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newTodo)
             }).then(() => {
                 loadTodos();
                 this.reset();
             });
         });
 
+        // Delete a to-do
         function deleteTodo(id) {
-            fetch(apiUrl + id + '/delete/', {method: 'DELETE'})
+            fetch(apiUrl + id + '/delete/', { method: 'DELETE' })
                 .then(() => loadTodos());
         }
 
+        // Toggle completion status of a to-do
         function toggleComplete(id, completed) {
             fetch(apiUrl + id + '/update/', {
                 method: 'PUT',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({completed: !completed, title: '', description: ''})
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ completed: !completed })
             }).then(() => loadTodos());
         }
 

@@ -2,6 +2,9 @@ from rest_framework import serializers
 from .models import Todo
 
 class todoserializers(serializers.ModelSerializer):
-    class Meta :
+    class Meta:
         model = Todo
-        fields  = '__all__'
+        fields = Todo
+
+    title = serializers.CharField(required=True)
+    completed = serializers.BooleanField(required=True)

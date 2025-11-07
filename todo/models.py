@@ -3,7 +3,7 @@ from django.db import models
 # Create your models here.
 class Todo(models.Model):
     title =models.CharField(max_length=50)
-    description= models.TextField(blank=True)
+    description= models.TimeField(blank=True)
     completed = models.BooleanField(default = False)
     Created_at = models.DateTimeField(auto_now_add=True)
 
